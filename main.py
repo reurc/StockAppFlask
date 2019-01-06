@@ -10,6 +10,7 @@ db = SQLAlchemy(app)
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
+    shares = db.Column(db.Integer, nullable=False)
 
 @app.route('/')
 @app.route('/<user>')
@@ -41,10 +42,11 @@ def shopping():
 def weather():
     if request.method == 'POST':
         new_symbol = request.form.get('symbol')
+        new_symbol_shares = request.form.get('shares')
         exists = db.session.query(Stock.id).filter_by(name=new_symbol).scalar() is not None
         print(exists)
         if new_symbol and not exists:
-            new_symbol_obj = Stock(name = new_symbol)
+            new_symbol_obj = Stock(name = new_symbol, shares = new_symbol_shares)
             db.session.add(new_symbol_obj)
             db.session.commit()
 
@@ -56,8 +58,8 @@ def weather():
     for symbol in stocks:
         r = requests.get(url.format(symbol.name)).json()
         last_updated = r['Meta Data']['3. Last Refreshed']
-        shares = 1
-        last_price = r['Time Series (Daily)'][last_updated]['4. close']
+        shares = symbol.shares
+        last_price = float(r['Time Series (Daily)'][last_updated]['4. close'])
 
         stock = {
             'symbol' : symbol.name,
