@@ -41,14 +41,22 @@ def shopping():
 @app.route('/weather', methods=['GET', 'POST'])
 def weather():
     if request.method == 'POST':
-        new_symbol = request.form.get('symbol')
-        new_symbol_shares = request.form.get('shares')
-        exists = db.session.query(Stock.id).filter_by(name=new_symbol).scalar() is not None
-        print(exists)
-        if new_symbol and not exists:
-            new_symbol_obj = Stock(name = new_symbol, shares = new_symbol_shares)
-            db.session.add(new_symbol_obj)
-            db.session.commit()
+        clear = request.form.get('clear')
+        if clear == 'clear':
+            print("clearing table")
+            stocks = Stock.query.all()
+            for stock in stocks:
+                db.session.delete(stock)
+                db.session.commit()
+        else:
+            new_symbol = request.form.get('symbol')
+            new_symbol_shares = request.form.get('shares')
+            exists = db.session.query(Stock.id).filter_by(name=new_symbol).scalar() is not None
+            print(exists)
+            if new_symbol and not exists:
+                new_symbol_obj = Stock(name = new_symbol, shares = new_symbol_shares)
+                db.session.add(new_symbol_obj)
+                db.session.commit()
 
     url = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={}' \
           '&outputsize=compact&apikey=KIH6VFJ03Z89T5DI'
