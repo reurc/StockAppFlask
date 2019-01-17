@@ -61,13 +61,26 @@
                                     <p>
                                         <span class="title">{{ stock.symbol }}</span>
                                         <br>
-                                        <span class="subtitle">{{ stock.last_price*stock.shares }}</span>
+                                        <span class="subtitle">{{ stock.value }}</span>
                                     </p>
                                 </div>
                             </div>
                         </article>
                     </div>
                     {% endfor %}
+                    <div class="box">
+                        <article class="media">
+                            <div class="media-content">
+                                <div class="content">
+                                    <p>
+                                        <span class="title">Total Portfolio Value</span>
+                                        <br>
+                                        <span class="subtitle">{{ total_value }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
                 </div>
             </div>
         </div>

@@ -62,6 +62,7 @@ def weather():
           '&outputsize=compact&apikey=KIH6VFJ03Z89T5DI'
     stock_data = []
     stocks = Stock.query.all()
+    total_value = 0
 
     for symbol in stocks:
         r = requests.get(url.format(symbol.name)).json()
@@ -73,14 +74,14 @@ def weather():
             'symbol' : symbol.name,
             'shares' : shares,
             'last_price' : last_price,
-            'value' : shares*last_price,
+            'value' : "$" + "{:,.2f}".format(shares*last_price),
         }
-
+        total_value = total_value + stock['shares']*stock['last_price']
         stock_data.append(stock)
 
-    print(weather)
+    total_value = "$" + "{:,.2f}".format(total_value)
 
-    return render_template("weather.html", stock_data=stock_data)
+    return render_template("weather.html", stock_data=stock_data, total_value=total_value)
 
 @app.route('/profile/<username>')
 def profile(username):
