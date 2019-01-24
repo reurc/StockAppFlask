@@ -10,6 +10,7 @@
 </head>
 
 <body>
+    <script src="https://code.highcharts.com/highcharts.src.js"></script>
     <section class="hero is-primary">
         <div class="hero-body">
             <div class="container">
@@ -62,10 +63,70 @@
                                         <span class="title">{{ stock.symbol }}</span>
                                         <br>
                                         <span class="subtitle">{{ stock.value }}</span>
+                                        <br>
+                                        <span class="subheading">{{ stock.shares }} shares at
+                                            {{ stock.price_per_share }} per share</span>
+                                        <br>
                                     </p>
                                 </div>
                             </div>
                         </article>
+                    </div>
+                    <div id={{ stock.symbol }} class="media">
+                        <script>
+                            var stockName = '{{ stock.symbol }}'
+                            var data = JSON.parse('{{ stock.high_charts | safe }}')
+                            console.log(data)
+                            var dataForHighCharts = []
+                            for(var key in data){
+                                if (data.hasOwnProperty(key)) {
+                                    console.log(key + "->" + data[key].year + " " +
+                                    " " + data[key].month + " " + data[key].day + " " + data[key].data);
+                                    dataForHighCharts.push([Date.UTC(Number(data[key].year),
+                                    Number(data[key].month), Number(data[key].day)), Number(data[key].data)])
+                                }
+                            }
+                            Highcharts.chart('{{ stock.symbol }}', {
+                                chart: {
+                                    type: 'line'
+                                },
+                                title: {
+                                    text: stockName
+                                },
+                                subtitle: {
+                                    text: "Change over the previous 5 days"
+                                },
+                                yAxis: {
+                                    title: {
+                                        text: 'Price ($)'
+                                    }
+                                },
+                                xAxis: {
+                                    type: 'datetime',
+                                    dateTimeLabelFormats: { // don't display the dummy year
+                                        day: '%e. %b',
+                                        year: '%b'
+                                    },
+                                    title: {
+                                        text: 'Date'
+                                    }
+                                },
+                                tooltip: {
+                                    pointFormat: '${point.y:.2f}'
+                                },
+                                plotOptions: {
+                                    spline: {
+                                        marker: {
+                                            enabled: false
+                                        }
+                                    }
+                                },
+                                series: [{
+                                    'name': stockName,
+                                    'data': dataForHighCharts
+                                }]
+                            });
+                        </script>
                     </div>
                     {% endfor %}
                     <div class="box">
