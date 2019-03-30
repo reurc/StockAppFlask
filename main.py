@@ -10,10 +10,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///symbols.db'
 db = SQLAlchemy(app)
 
 
-class Stock(db.Model):
+class Tester(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    shares = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String, nullable=False)
+    temperature = db.Column(db.Integer, nullable=False)
+    release = db.Column(db.String, nullable=False)
+    last_update = db.Column(db.Date, nullable=False)
 
 
 @app.route('/')
@@ -36,7 +38,7 @@ def bacon():
 #    return 'This is the home page'
 def to_high_charts(response):
     high_charts = []
-    days = 5
+    days = 30
     i = iter(response["Time Series (Daily)"].values())
     a = iter(response["Time Series (Daily)"].keys())
     pattern = re.compile('(\d{4})-(\d{2})-(\d{2})')
@@ -73,54 +75,38 @@ def shopping():
     return render_template("shopping.html", food=food)
 
 
+def get_efct_data():
+    data = {
+        'testerA' : {'status' : 'Running', 'temperature' : 70, 'release' : '1.0.0'},
+        'testerB' : {'status' : 'Idle', 'temperature' : 65, 'release' : '1.2.3'},
+        'testerC' : {'status' : 'Off', 'temperature' : 25, 'release' : '1.3.5'},
+    }
+    print(data)
+    return json.dumps(data);
+
+
 @app.route('/weather', methods=['GET', 'POST'])
 def weather():
-    if request.method == 'POST':
-        clear = request.form.get('clear')
-        if clear == 'clear':
-            print("clearing table")
-            stocks = Stock.query.all()
-            for stock in stocks:
-                db.session.delete(stock)
-                db.session.commit()
-        else:
-            new_symbol = request.form.get('symbol')
-            new_symbol_shares = request.form.get('shares')
-            exists = db.session.query(Stock.id).filter_by(name=new_symbol).scalar() is not None
-            print(exists)
-            if new_symbol and not exists:
-                new_symbol_obj = Stock(name = new_symbol, shares = new_symbol_shares)
-                db.session.add(new_symbol_obj)
-                db.session.commit()
-
-    url = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={}' \
-          '&outputsize=compact&apikey=KIH6VFJ03Z89T5DI'
-    stock_data = []
-    stocks = Stock.query.all()
-    total_value = 0
-    high_charts_data = []
-
-    for symbol in stocks:
-        r = requests.get(url.format(symbol.name)).json()
-        high_charts_data = to_high_charts(r)
-        last_updated = r['Meta Data']['3. Last Refreshed']
-        shares = symbol.shares
-        last_price = float(r['Time Series (Daily)'][last_updated]['4. close'])
-
-        stock = {
-            'symbol' : symbol.name,
-            'shares' : shares,
-            'last_price' : last_price,
-            'value' : "$" + "{:,.2f}".format(shares*last_price),
-            'price_per_share' : "$" + "{:,.2f}".format(last_price),
-            'high_charts' : high_charts_data,
+    efct_data = get_efct_data()
+    print(efct_data)
+    data = json.loads(efct_data)
+    print(data)
+    tester_data = []
+    for tester in data:
+        print("tester is " + tester)
+        value = data[tester]
+        print("The key and value are ({}) = ({})".format(tester, value))
+        element = {
+            'id' : tester,
+            'status' : data[tester]['status'],
+            'temp' : data[tester]['temperature'],
+            'release' : data[tester]['release'],
         }
-        total_value = total_value + stock['shares']*stock['last_price']
-        stock_data.append(stock)
+        tester_data.append(element)
 
-    total_value = "$" + "{:,.2f}".format(total_value)
+    print(tester_data)
 
-    return render_template("weather.html", stock_data=stock_data, total_value=total_value, chart=high_charts_data)
+    return render_template("weather.html", stock_data=tester_data)
 
 
 @app.route('/profile/<username>')
